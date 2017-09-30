@@ -2,7 +2,7 @@
   <div id="app">
 
     <disc v-bind:singer-image="singerImage" v-bind:is-play="isPlay" v-bind:hash="hash"></disc>
-    <lyrics v-bind:lyrics="lyrics" v-bind:current-time="currentTime"></lyrics>
+    <lyrics v-bind:lyrics="lyrics" v-bind:current-time="currentTime" v-bind:is-end="isEnd"></lyrics>
     <control v-bind:is-play="isPlay" v-bind:song-name="songName" v-bind:singer="singer" v-bind:current-time="currentTime" v-bind:duration="duration" v-on:clickPlayBtn="clickPlayBtn"></control>
     <div class="search-btn">
       <button v-on:touchend="showSearchPanel = !showSearchPanel">
@@ -42,7 +42,8 @@ export default {
       isPlay:false,
       currentTime:0,
       duration:0,
-      hash:0
+      hash:0,
+      isEnd:false
     }
   },
   methods: {
@@ -50,7 +51,6 @@ export default {
       this.showSearchPanel = false;
     },
     clickPlayBtn:function(){
-      console.log(this.isPlay);
       this.isPlay = !this.isPlay;
       this.setPalayStatus(this.isPlay);
     },
@@ -108,11 +108,12 @@ export default {
     },
     newAudio:function(url){
       this.audio = new Audio();
-      this.audio.loop = 'loop';
+      //this.audio.loop = 'loop';
       this.audio.src = url;
       this.audio.load();
       this.audio.addEventListener("timeupdate", ()=>{ this.onTimeUpdate(event) });
       this.audio.addEventListener("canplaythrough", ()=>{ this.onCanPlay(event) });
+      this.audio.addEventListener("ended", ()=>{ this.onEnded(event) });
       //this.audio.addEventListener("error", ()=>{ this.onError(event) });
     },
     clearAudio:function() {
@@ -120,26 +121,25 @@ export default {
       this.audioPause();
       this.audio.removeEventListener("timeupdate",  ()=>{ this.onTimeUpdate(event) });
       this.audio.removeEventListener("canplaythrough", ()=>{ this.onCanPlay(event) });
+      this.audio.removeEventListener("ended", ()=>{ this.onEnded(event) });
       //this.audio.removeEventListener("error", ()=>{ this.onError(event) });
       this.audio = null;
     },
     onTimeUpdate:function(event) {
       if(!this.audio) return;
-      if(this.isPlay) {
-        if(this.audio.currentTime > 0) {
-          //播完
-          if(this.audio.currentTime == this.audio.duration) {
-            this.isPlay = false;
-          }else {
-            this.currentTime = this.audio.currentTime,
-            this.duration = this.audio.currentTime != 0?this.audio.duration:0
-          }
-        }
+      if(this.audio.currentTime > 0) {
+        this.isEnd = false;
+        this.currentTime = this.audio.currentTime,
+        this.duration = this.audio.currentTime != 0?this.audio.duration:0
       }
     },
     onCanPlay:function(event) {
       if(!this.audio) return;
       this.setPalayStatus(true);
+    },
+    onEnded:function(){
+      this.isPlay = false;
+      this.isEnd = true;
     },
     setPalayStatus:function(playStatus) {
       if(!this.audio.error) {

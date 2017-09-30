@@ -16,10 +16,18 @@ export default {
 			ph:0
     	}
   	},
-  	props: ['lyrics','currentTime'],
+  	props: ['lyrics','currentTime','isEnd'],
   	watch:{
+		lyrics:function() {
+			this.initLyricsPosition();
+		},
 		currentTime: function() {
 			this.positionLyric();
+		},
+		isEnd:function(){
+			if(this.isEnd) {
+				this.initLyricsPosition();
+			}
 		}
 	},
 	computed:{
@@ -28,6 +36,11 @@ export default {
 		}
 	},
   	methods:{
+		initLyricsPosition:function(){
+			this.lightRowIndex = 0;
+			this.scollIndex = 0;
+			this.ph = 0;
+		},
 		positionLyric: function() {
 			//遍历所有歌词，看哪句歌词的时间与当然时间吻合
 			var indexArr = [];
